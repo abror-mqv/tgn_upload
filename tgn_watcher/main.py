@@ -1,10 +1,12 @@
 import asyncio
 import os
 from telethon import TelegramClient, events, errors
+from telethon.network.connection.tcpabridged import ConnectionTcpAbridged
 from dotenv import load_dotenv
 from parser import parse_message
 from sender import send_to_backend, get_prediction
-from telethon.network.connection.tcpabridged import ConnectionTcpAbridged
+import socks
+
 load_dotenv()
 
 api_id = int(os.getenv("API_ID"))
@@ -12,8 +14,11 @@ api_hash = os.getenv("API_HASH")
 session_name = os.getenv("SESSION_NAME")
 groups = [x.strip() for x in os.getenv("GROUPS").split(",")]
 
-proxy = ('185.199.228.199', 1080, 'socks5')
+# Настройка SOCKS5 прокси
+# format: (host, port, rdns, username, password)
+proxy = (socks.SOCKS5, '95.78.119.94', 1080, True, None, None)
 
+# Создаём клиент с прокси
 client = TelegramClient(
     session_name,
     api_id,
@@ -21,7 +26,6 @@ client = TelegramClient(
     connection=ConnectionTcpAbridged,
     proxy=proxy
 )
-
 
 @client.on(events.NewMessage(chats=groups))
 async def handler(event):
@@ -47,7 +51,7 @@ async def handler(event):
                             images.append(b)
             else:
                 is_img = bool(getattr(message, "photo", None)) or (
-                    getattr(message, "document", None) and getattr(m.document, "mime_type", "").startswith("image/")
+                    getattr(message, "document", None) and getattr(message.document, "mime_type", "").startswith("image/")
                 )
                 if is_img:
                     b = await message.download_media(file=bytes)
@@ -67,7 +71,6 @@ async def handler(event):
     except Exception as e:
         print(f"❌ Ошибка при обработке сообщения: {e}")
 
-
 async def main():
     print("🚀 Watcher запущен. Подключаемся к Telegram...")
     try:
@@ -80,7 +83,6 @@ async def main():
         print(f"❌ RPCError при подключении к Telegram: {rpc_e}")
     except Exception as e:
         print(f"❌ Общая ошибка при подключении к Telegram: {e}")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
