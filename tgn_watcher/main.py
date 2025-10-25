@@ -4,6 +4,7 @@ from telethon import TelegramClient, events
 from dotenv import load_dotenv
 from parser import parse_message
 from sender import send_to_backend, get_prediction
+from telethon.tl.functions.channels import GetFullChannelRequest
 
 load_dotenv()
 
@@ -80,8 +81,18 @@ async def handler(event):
     except Exception as e:
         print("❌ Ошибка при отправке на бэкенд:", e)
 
+async def get_chat_id(link):
+    channel = await client(GetFullChannelRequest(link))
+    return channel.full_chat.id
 
 async def main():
+    await client.start()
+    group_ids = []
+    for link in groups:
+        chat_id = await get_chat_id(link)
+        print(f"🔹 {link} -> {chat_id}")
+        group_ids.append(chat_id)
+    print(group_ids)
     print("🚀 Watcher запущен. Подключаемся к Telegram...")
     await client.start()
     print("✅ Успешно подключено к Telegram")
