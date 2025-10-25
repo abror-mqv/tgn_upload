@@ -63,7 +63,11 @@ async def handler(event):
 async def main():
     print("🚀 Watcher запущен. Подключаемся к Telegram...")
     try:
-        await client.start()
+        await client.connect()
+        if not await client.is_user_authorized():
+            print("❌ Сессия не авторизована!")
+        else:
+            print("✅ Сессия авторизована!")
         me = await client.get_me()
         print(f"🔹 Успешно подключились! Аккаунт: {me.first_name} ({me.username})")
         print(f"🔹 Слежение за группами: {groups}")
