@@ -4,7 +4,7 @@ from telethon import TelegramClient, events, errors
 from dotenv import load_dotenv
 from parser import parse_message
 from sender import send_to_backend, get_prediction
-
+from telethon.network.connection.tcpabridged import ConnectionTcpAbridged
 load_dotenv()
 
 api_id = int(os.getenv("API_ID"))
@@ -12,7 +12,15 @@ api_hash = os.getenv("API_HASH")
 session_name = os.getenv("SESSION_NAME")
 groups = [x.strip() for x in os.getenv("GROUPS").split(",")]
 
-client = TelegramClient(session_name, api_id, api_hash)
+proxy = ('185.199.228.199', 1080, 'socks5')
+
+client = TelegramClient(
+    session_name,
+    api_id,
+    api_hash,
+    connection=ConnectionTcpAbridged,
+    proxy=proxy
+)
 
 
 @client.on(events.NewMessage(chats=groups))
@@ -63,11 +71,7 @@ async def handler(event):
 async def main():
     print("🚀 Watcher запущен. Подключаемся к Telegram...")
     try:
-        await client.connect()
-        if not await client.is_user_authorized():
-            print("❌ Сессия не авторизована!")
-        else:
-            print("✅ Сессия авторизована!")
+        await client.start()
         me = await client.get_me()
         print(f"🔹 Успешно подключились! Аккаунт: {me.first_name} ({me.username})")
         print(f"🔹 Слежение за группами: {groups}")
