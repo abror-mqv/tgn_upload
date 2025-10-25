@@ -1,6 +1,7 @@
 import re
+from typing import Union
 
-def extract_phone_number(text: str) -> str | None:
+def extract_phone_number(text: str) -> Union[str, None]:
     if not text:
         return None
     cleaned = re.sub(r"[^\d\+\s]", " ", text)
